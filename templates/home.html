@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Student Exam Performance Predictor</title>
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: "Poppins", sans-serif;
+    }
+
+    body {
+      background: radial-gradient(circle at top left, #0f0c29, #302b63, #24243e);
+      color: #fff;
+      height: 100vh;
+      overflow-x: hidden;
+    }
+
+    .container {
+      width: 90%;
+      max-width: 700px;
+      margin: 5% auto;
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      padding: 2rem 3rem;
+      box-shadow: 0 0 30px rgba(0, 0, 0, 0.4);
+      animation: fadeIn 1.5s ease;
+      position: relative;
+      z-index: 2;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 1.5rem;
+      font-size: 2rem;
+      color: #00e0ff;
+      text-shadow: 0 0 20px #00e0ff;
+    }
+
+    label {
+      font-weight: 500;
+      margin-bottom: 0.3rem;
+      display: block;
+    }
+
+    select, input {
+      width: 100%;
+      padding: 0.6rem;
+      margin-bottom: 1.2rem;
+      border-radius: 8px;
+      border: none;
+      outline: none;
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
+      transition: all 0.3s ease;
+    }
+
+    select:focus, input:focus {
+      background: rgba(255, 255, 255, 0.2);
+      box-shadow: 0 0 10px #00e0ff;
+    }
+
+    option {
+      color: #000;
+    }
+
+    .btn {
+      background: linear-gradient(90deg, #00e0ff, #007bff);
+      border: none;
+      color: white;
+      font-weight: bold;
+      font-size: 1.1rem;
+      border-radius: 10px;
+      padding: 0.8rem 1.2rem;
+      width: 100%;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    .btn:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 20px #00e0ff;
+    }
+
+    .result {
+      margin-top: 2rem;
+      text-align: center;
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: #00ffb7;
+      text-shadow: 0 0 10px #00ffb7;
+      animation: fadeIn 1.2s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Floating mouse orb */
+    .cursor {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 30px;
+      height: 30px;
+      border: 2px solid #00e0ff;
+      border-radius: 50%;
+      pointer-events: none;
+      transform: translate(-50%, -50%);
+      transition: all 0.1s ease-out;
+      box-shadow: 0 0 20px #00e0ff;
+      z-index: 9999;
+    }
+
+    .cursor-fade {
+      animation: pulse 1.5s infinite alternate;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(1); opacity: 0.8; }
+      100% { transform: scale(1.5); opacity: 0.4; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="cursor"></div>
+
+  <div class="container">
+    <h1>🎓 Student Exam Performance Predictor</h1>
+    <form action="{{ url_for('predict_datapoint') }}" method="post">
+      <label>Gender</label>
+      <select name="gender" required>
+        <option value="" disabled selected>Select Gender</option>
+        <option value="male">Male</option>
+        <option value="female">Female</option>
+      </select>
+
+      <label>Race or Ethnicity</label>
+      <select name="ethnicity" required>
+        <option value="" disabled selected>Select Ethnicity</option>
+        <option value="group A">Group A</option>
+        <option value="group B">Group B</option>
+        <option value="group C">Group C</option>
+        <option value="group D">Group D</option>
+        <option value="group E">Group E</option>
+      </select>
+
+      <label>Parental Level of Education</label>
+      <select name="parental_level_of_education" required>
+        <option value="" disabled selected>Select Education</option>
+        <option value="associate's degree">Associate's degree</option>
+        <option value="bachelor's degree">Bachelor's degree</option>
+        <option value="high school">High school</option>
+        <option value="master's degree">Master's degree</option>
+        <option value="some college">Some college</option>
+        <option value="some high school">Some high school</option>
+      </select>
+
+      <label>Lunch Type</label>
+      <select name="lunch" required>
+        <option value="" disabled selected>Select Lunch Type</option>
+        <option value="free/reduced">Free/Reduced</option>
+        <option value="standard">Standard</option>
+      </select>
+
+      <label>Test Preparation Course</label>
+      <select name="test_preparation_course" required>
+        <option value="" disabled selected>Select Course</option>
+        <option value="none">None</option>
+        <option value="completed">Completed</option>
+      </select>
+
+      <label>Writing Score (out of 100)</label>
+      <input type="number" name="writing_score" min="0" max="100" required />
+
+      <label>Reading Score (out of 100)</label>
+      <input type="number" name="reading_score" min="0" max="100" required />
+
+      <input class="btn" type="submit" value="🚀 Predict Your Math Score" />
+    </form>
+
+    {% if results %}
+    <div class="result">
+      🧠 Predicted Math Score: <span>{{ results }}</span>
+    </div>
+    {% endif %}
+  </div>
+
+  <script>
+    const cursor = document.querySelector(".cursor");
+    document.addEventListener("mousemove", e => {
+      cursor.style.top = e.clientY + "px";
+      cursor.style.left = e.clientX + "px";
+    });
+    cursor.classList.add("cursor-fade");
+  </script>
+</body>
+</html>
